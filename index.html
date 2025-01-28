@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encryptor & Decryptor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #2c2c2c;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .container h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button.encrypt {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        button.decrypt {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #444;
+            border-radius: 8px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Encryptor & Decryptor</h1>
+
+        <div class="input-group">
+            <label for="file">Select a file:</label>
+            <input type="file" id="file" accept="*">
+        </div>
+
+        <button class="encrypt" onclick="encryptFile()">Encrypt File</button>
+        <button class="decrypt" onclick="decryptFile()">Decrypt File</button>
+
+        <div id="output" class="output" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function generateKey() {
+            const cryptoKey = await window.crypto.subtle.generateKey(
+                {
+                    name: "AES-GCM",
+                    length: 256
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+            const rawKey = await window.crypto.subtle.exportKey("raw", cryptoKey);
+            return { cryptoKey, rawKey };
+        }
+
+        async function encryptFile() {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showMessage('Please select a file to encrypt.');
+                return;
+            }
+
+            const { cryptoKey, rawKey } = await generateKey();
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+            const fileData = await file.arrayBuffer();
+            const encryptedData = await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv
+                },
+                cryptoKey,
+                fileData
+            );
+
+            const encryptedBlob = new Blob([iv, encryptedData]);
+            const keyBlob = new Blob([rawKey]);
+
+            downloadBlob(encryptedBlob, `${file.name}.aes`);
+            downloadBlob(keyBlob, `key_${file.name}.bin`);
+
+            showMessage(`File "${file.name}" has been encrypted successfully.`);
+        }
+
+        async function decryptFile() {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            if (!file || !file.name.endsWith('.aes')) {
+                showMessage('Please select a valid .aes file to decrypt.');
+                return;
+            }
+
+            const keyFile = await selectKeyFile();
+            if (!keyFile) {
+                showMessage('Key file not selected.');
+                return;
+            }
+
+            const fileData = await file.arrayBuffer();
+            const rawKey = await keyFile.arrayBuffer();
+
+            const iv = new Uint8Array(fileData.slice(0, 12));
+            const encryptedData = fileData.slice(12);
+
+            const cryptoKey = await window.crypto.subtle.importKey(
+                "raw",
+                rawKey,
+                "AES-GCM",
+                true,
+                ["decrypt"]
+            );
+
+            try {
+                const decryptedData = await window.crypto.subtle.decrypt(
+                    {
+                        name: "AES-GCM",
+                        iv
+                    },
+                    cryptoKey,
+                    encryptedData
+                );
+
+                const decryptedBlob = new Blob([decryptedData]);
+                downloadBlob(decryptedBlob, file.name.replace('.aes', ''));
+
+                showMessage(`File "${file.name}" has been decrypted successfully.`);
+            } catch (err) {
+                showMessage('Decryption failed. Invalid key or corrupted file.');
+            }
+        }
+
+        function selectKeyFile() {
+            return new Promise((resolve) => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = ".bin";
+                input.onchange = () => resolve(input.files[0]);
+                input.click();
+            });
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showMessage(message) {
+            const output = document.getElementById('output');
+            output.style.display = 'block';
+            output.textContent = message;
+        }
+    </script>
+</body>
+</html>
