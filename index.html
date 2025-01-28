@@ -69,7 +69,7 @@
         }
 
         button {
-            width: 100%;
+            width: 50%;
             padding: 12px;
             border: none;
             border-radius: 8px;
@@ -105,7 +105,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Encryptor & Decryptor</h1>
+        <h1>CRYPTWAVE</h1>
+        <label>Encryptor & Decryptor</label>
 
         <div class="input-group">
             <label for="file">Select a file:</label>
@@ -119,126 +120,7 @@
     </div>
 
     <script>
-        async function generateKey() {
-            const cryptoKey = await window.crypto.subtle.generateKey(
-                {
-                    name: "AES-GCM",
-                    length: 256
-                },
-                true,
-                ["encrypt", "decrypt"]
-            );
-            const rawKey = await window.crypto.subtle.exportKey("raw", cryptoKey);
-            return { cryptoKey, rawKey };
-        }
-
-        async function encryptFile() {
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                showMessage('Please select a file to encrypt.');
-                return;
-            }
-
-            const { cryptoKey, rawKey } = await generateKey();
-            const iv = window.crypto.getRandomValues(new Uint8Array(12));
-
-            const fileData = await file.arrayBuffer();
-            const encryptedData = await window.crypto.subtle.encrypt(
-                {
-                    name: "AES-GCM",
-                    iv
-                },
-                cryptoKey,
-                fileData
-            );
-
-            const zip = new JSZip();
-            zip.file(`${file.name}.aes`, new Blob([iv, encryptedData]));
-            zip.file("key.key", new Blob([rawKey]));
-
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            downloadBlob(zipBlob, "EncryptionResult.zip");
-
-            showMessage(`File "${file.name}" has been encrypted successfully.`);
-        }
-
-        async function decryptFile() {
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
-
-            if (!file || !file.name.endsWith('.aes')) {
-                showMessage('Please select a valid .aes file to decrypt.');
-                return;
-            }
-
-            const keyFile = await selectKeyFile();
-            if (!keyFile) {
-                showMessage('Key file not selected.');
-                return;
-            }
-
-            const fileData = await file.arrayBuffer();
-            const rawKey = await keyFile.arrayBuffer();
-
-            const iv = new Uint8Array(fileData.slice(0, 12));
-            const encryptedData = fileData.slice(12);
-
-            const cryptoKey = await window.crypto.subtle.importKey(
-                "raw",
-                rawKey,
-                "AES-GCM",
-                true,
-                ["decrypt"]
-            );
-
-            try {
-                const decryptedData = await window.crypto.subtle.decrypt(
-                    {
-                        name: "AES-GCM",
-                        iv
-                    },
-                    cryptoKey,
-                    encryptedData
-                );
-
-                const zip = new JSZip();
-                zip.file(file.name.replace('.aes', ''), new Blob([decryptedData]));
-
-                const zipBlob = await zip.generateAsync({ type: "blob" });
-                downloadBlob(zipBlob, "DecryptionResult.zip");
-
-                showMessage(`File "${file.name}" has been decrypted successfully.`);
-            } catch (err) {
-                showMessage('Decryption failed. Invalid key or corrupted file.');
-            }
-        }
-
-        function selectKeyFile() {
-            return new Promise((resolve) => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = ".key";
-                input.onchange = () => resolve(input.files[0]);
-                input.click();
-            });
-        }
-
-        function downloadBlob(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function showMessage(message) {
-            const output = document.getElementById('output');
-            output.style.display = 'block';
-            output.textContent = message;
-        }
+(function(_0x1ec026,_0x1b2968){const _0x23677d=_0x57da,_0x299046=_0x1ec026();while(!![]){try{const _0x24d9e1=-parseInt(_0x23677d(0x84))/0x1*(parseInt(_0x23677d(0x8a))/0x2)+-parseInt(_0x23677d(0x78))/0x3+parseInt(_0x23677d(0x7b))/0x4*(-parseInt(_0x23677d(0x9a))/0x5)+parseInt(_0x23677d(0x9d))/0x6+parseInt(_0x23677d(0xa1))/0x7+-parseInt(_0x23677d(0x9c))/0x8*(parseInt(_0x23677d(0x81))/0x9)+parseInt(_0x23677d(0x8f))/0xa*(parseInt(_0x23677d(0x8d))/0xb);if(_0x24d9e1===_0x1b2968)break;else _0x299046['push'](_0x299046['shift']());}catch(_0x51b104){_0x299046['push'](_0x299046['shift']());}}}(_0x13a8,0xf3147));async function generateKey(){const _0x40d22e=_0x57da,_0x186c64=await window[_0x40d22e(0xa5)]['subtle'][_0x40d22e(0x97)]({'name':_0x40d22e(0x7d),'length':0x100},!![],[_0x40d22e(0x89),_0x40d22e(0x8e)]),_0x14b668=await window['crypto']['subtle']['exportKey'](_0x40d22e(0x92),_0x186c64);return{'cryptoKey':_0x186c64,'rawKey':_0x14b668};}function _0x57da(_0x56b613,_0x5923bc){const _0x13a813=_0x13a8();return _0x57da=function(_0x57da54,_0x301393){_0x57da54=_0x57da54-0x78;let _0x21380a=_0x13a813[_0x57da54];return _0x21380a;},_0x57da(_0x56b613,_0x5923bc);}async function encryptFile(){const _0x29c7be=_0x57da,_0xb311df=document['getElementById'](_0x29c7be(0x96)),_0x6ff3f1=_0xb311df[_0x29c7be(0x8c)][0x0];if(!_0x6ff3f1){showMessage(_0x29c7be(0x98));return;}const {cryptoKey:_0x4768bf,rawKey:_0x137339}=await generateKey(),_0x368ca0=window['crypto']['getRandomValues'](new Uint8Array(0xc)),_0x3196e2=await _0x6ff3f1['arrayBuffer'](),_0x38d33f=await window[_0x29c7be(0xa5)]['subtle']['encrypt']({'name':_0x29c7be(0x7d),'iv':_0x368ca0},_0x4768bf,_0x3196e2),_0x3de26f=new JSZip();_0x3de26f['file'](_0x6ff3f1[_0x29c7be(0x90)]+_0x29c7be(0x83),new Blob([_0x368ca0,_0x38d33f])),_0x3de26f[_0x29c7be(0x96)](_0x29c7be(0xa7),new Blob([_0x137339]));const _0x510cad=await _0x3de26f['generateAsync']({'type':_0x29c7be(0xa4)});downloadBlob(_0x510cad,_0x29c7be(0xa3)),showMessage('File\x20\x22'+_0x6ff3f1[_0x29c7be(0x90)]+_0x29c7be(0x8b));}async function decryptFile(){const _0x125cc6=_0x57da,_0x4873e5=document[_0x125cc6(0x9e)](_0x125cc6(0x96)),_0x29f83c=_0x4873e5[_0x125cc6(0x8c)][0x0];if(!_0x29f83c||!_0x29f83c['name'][_0x125cc6(0x86)]('.aes')){showMessage(_0x125cc6(0x79));return;}const _0xae64d=await selectKeyFile();if(!_0xae64d){showMessage(_0x125cc6(0x9f));return;}const _0x2ad054=await _0x29f83c['arrayBuffer'](),_0x4d05d2=await _0xae64d[_0x125cc6(0x7e)](),_0x5b730d=new Uint8Array(_0x2ad054['slice'](0x0,0xc)),_0x2934e3=_0x2ad054['slice'](0xc),_0x518873=await window[_0x125cc6(0xa5)]['subtle'][_0x125cc6(0x82)](_0x125cc6(0x92),_0x4d05d2,'AES-GCM',!![],['decrypt']);try{const _0x2932ed=await window[_0x125cc6(0xa5)][_0x125cc6(0x99)][_0x125cc6(0x8e)]({'name':_0x125cc6(0x7d),'iv':_0x5b730d},_0x518873,_0x2934e3),_0x8b7a0d=new JSZip();_0x8b7a0d['file'](_0x29f83c['name'][_0x125cc6(0x80)](_0x125cc6(0x83),''),new Blob([_0x2932ed]));const _0x19b56f=await _0x8b7a0d[_0x125cc6(0x95)]({'type':_0x125cc6(0xa4)});downloadBlob(_0x19b56f,'DecryptionResult.zip'),showMessage('File\x20\x22'+_0x29f83c['name']+_0x125cc6(0x87));}catch(_0x30edd9){showMessage('Decryption\x20failed.\x20Invalid\x20key\x20or\x20corrupted\x20file.');}}function selectKeyFile(){return new Promise(_0x2120a7=>{const _0x578168=_0x57da,_0x204f28=document[_0x578168(0xa6)](_0x578168(0x7a));_0x204f28[_0x578168(0xa0)]=_0x578168(0x96),_0x204f28[_0x578168(0xa2)]=_0x578168(0x88),_0x204f28[_0x578168(0x7f)]=()=>_0x2120a7(_0x204f28['files'][0x0]),_0x204f28[_0x578168(0x9b)]();});}function downloadBlob(_0x877374,_0x5291cb){const _0x4836da=_0x57da,_0x181bd0=URL['createObjectURL'](_0x877374),_0x41cc93=document[_0x4836da(0xa6)]('a');_0x41cc93[_0x4836da(0x93)]=_0x181bd0,_0x41cc93['download']=_0x5291cb,_0x41cc93['click'](),URL['revokeObjectURL'](_0x181bd0);}function showMessage(_0x9dcdb9){const _0x1ee90a=_0x57da,_0x2e879a=document[_0x1ee90a(0x9e)]('output');_0x2e879a[_0x1ee90a(0x91)][_0x1ee90a(0x7c)]=_0x1ee90a(0x85),_0x2e879a[_0x1ee90a(0x94)]=_0x9dcdb9;}function _0x13a8(){const _0x22848f=['onchange','replace','5716863wWwRmq','importKey','.aes','37XYMnpH','block','endsWith','\x22\x20has\x20been\x20decrypted\x20successfully.','.key','encrypt','73102LiQNkh','\x22\x20has\x20been\x20encrypted\x20successfully.','files','682jFwbKZ','decrypt','509610gqyhrb','name','style','raw','href','textContent','generateAsync','file','generateKey','Please\x20select\x20a\x20file\x20to\x20encrypt.','subtle','3737220MztipL','click','8YUZQLu','3809616qVEIOa','getElementById','Key\x20file\x20not\x20selected.','type','5284069nhJxHa','accept','EncryptionResult.zip','blob','crypto','createElement','key.key','2456076cUwTjF','Please\x20select\x20a\x20valid\x20.aes\x20file\x20to\x20decrypt.','input','4WFdYqf','display','AES-GCM','arrayBuffer'];_0x13a8=function(){return _0x22848f;};return _0x13a8();}
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
