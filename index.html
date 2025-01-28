@@ -101,6 +101,12 @@
             word-wrap: break-word;
         }
 
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -114,6 +120,8 @@
 
         <button class="encrypt" onclick="encryptFile()">Encrypt File</button>
         <button class="decrypt" onclick="decryptFile()">Decrypt File</button>
+
+        <div class="loading" id="loading">Processing, please wait...</div>
 
         <div id="output" class="output" style="display: none;"></div>
     </div>
@@ -132,12 +140,19 @@
             return { cryptoKey, rawKey };
         }
 
+        function toggleLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+
         async function encryptFile() {
+            toggleLoading(true);
             const fileInput = document.getElementById('file');
             const file = fileInput.files[0];
 
             if (!file) {
                 showMessage('Please select a file to encrypt.');
+                toggleLoading(false);
                 return;
             }
 
@@ -162,20 +177,24 @@
             downloadBlob(zipBlob, "EncryptionResult.zip");
 
             showMessage(`File "${file.name}" has been encrypted successfully.`);
+            toggleLoading(false);
         }
 
         async function decryptFile() {
+            toggleLoading(true);
             const fileInput = document.getElementById('file');
             const file = fileInput.files[0];
 
             if (!file || !file.name.endsWith('.aes')) {
                 showMessage('Please select a valid .aes file to decrypt.');
+                toggleLoading(false);
                 return;
             }
 
             const keyFile = await selectKeyFile();
             if (!keyFile) {
                 showMessage('Key file not selected.');
+                toggleLoading(false);
                 return;
             }
 
@@ -203,16 +222,25 @@
                     encryptedData
                 );
 
-                const zip = new JSZip();
-                zip.file(file.name.replace('.aes', ''), new Blob([decryptedData]));
+                const textContent = new TextDecoder().decode(decryptedData);
 
-                const zipBlob = await zip.generateAsync({ type: "blob" });
-                downloadBlob(zipBlob, "DecryptionResult.zip");
+                if (/[^\x00-\x7F]/.test(textContent) || textContent.length > 1000) {
+                    const zip = new JSZip();
+                    zip.file(file.name.replace('.aes', ''), new Blob([decryptedData]));
 
-                showMessage(`File "${file.name}" has been decrypted successfully.`);
+                    const zipBlob = await zip.generateAsync({ type: "blob" });
+                    downloadBlob(zipBlob, "DecryptionResult.zip");
+
+                    showMessage(`File "${file.name}" has been decrypted and saved as a ZIP file.`);
+                } else {
+                    const lines = textContent.split('\n');
+                    const displayContent = lines.slice(0, 10).join('\n') + (lines.length > 10 ? '\n...' : '');
+                    showMessage(`Decrypted Content:\n\n${displayContent}`);
+                }
             } catch (err) {
                 showMessage('Decryption failed. Invalid key or corrupted file.');
             }
+            toggleLoading(false);
         }
 
         function selectKeyFile() {
